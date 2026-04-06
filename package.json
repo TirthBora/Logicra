@@ -1,0 +1,15 @@
+{
+  "name": "logicra",
+  "version": "1.0.0",
+  "description": "Code analysis tool",
+  "scripts": {
+    "backend": "cd backend && python run.py",
+    "frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "install-all": "cd backend && pip install -r requirements.txt && cd ../frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
+
