@@ -90,3 +90,35 @@ def parse_cpp(file_path):
 def parse_generic(file_path):
     return []
 
+def extract_imports(file_path):
+    lang=detect_lang(file_path)
+    if lang=="python":
+        return parse_python(file_path)
+    elif lang=="javascript":
+        return parse_javascript(file_path)
+    elif lang=="java":
+        return parse_java(file_path)
+    elif lang in ["c","cpp"]:
+        return parse_cpp(file_path)
+    else:
+        return parse_generic(file_path)
+def parse_object(project_path):
+    files=get_all_files(project_path)
+    dependacy_map={}
+    for file in files:
+        file_name=os.path.relpath(file_path,project_path)
+        imports = extract_imports(file_path)
+        dependacy_map[file_name]=imports[file_name]={
+            "language": detect_lang(file_path),
+            "imports":imports
+        }
+    return dependacy_map
+
+if __name__=="__main__":
+    project_path="../../sample_projects/project1"
+
+    result=parse_object(project_path)
+
+    for file,data in result.items():
+        print(f"{file} ({data['language']})->{data["imports"]}")
+
