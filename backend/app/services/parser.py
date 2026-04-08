@@ -104,18 +104,18 @@ def extract_imports(file_path):
         return parse_generic(file_path)
 def parse_object(project_path):
     files=get_all_files(project_path)
-    dependacy_map={}
-    for file in files:
+    dependency_map={}
+    for file_path in files:
         file_name=os.path.relpath(file_path,project_path)
         imports = extract_imports(file_path)
-        dependacy_map[file_name]=imports[file_name]={
+        dependency_map[file_name]={
             "language": detect_lang(file_path),
             "imports":imports
         }
-    return dependacy_map
+    return dependency_map
 
 if __name__=="__main__":
-    project_path="../../sample_projects/project1"
+    project_path="../../../sample_projects/project1"
 
     result=parse_object(project_path)
 
