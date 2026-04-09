@@ -1,7 +1,7 @@
 import os
 import ast
 import re
-
+from graph_builder import build_graph
 EXTENSIONS={
     ".py": "python",
     ".js": "javascript",
@@ -116,9 +116,12 @@ def parse_object(project_path):
 
 if __name__=="__main__":
     project_path="../../../sample_projects/project1"
-
-    result=parse_object(project_path)
-
-    for file,data in result.items():
-        print(f"{file} ({data['language']})->{data["imports"]}")
-
+    dependancy_map=parse_object(project_path)
+    graph=build_graph(dependancy_map)
+    print("\nNODES:")
+    for n in graph["nodes"]:
+        print(n)
+    print("\nEDGES:")
+    for e in graph["edges"]:
+        print(e)
+   

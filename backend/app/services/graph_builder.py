@@ -2,7 +2,7 @@ def build_graph(dependancy_map):
     nodes=[]
     edges=[]
 
-    file_set=set(dependancy_map.key())
+    file_set = set(dependancy_map.keys())
 
     for file in dependancy_map:
         nodes.append({
