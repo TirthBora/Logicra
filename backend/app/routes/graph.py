@@ -4,7 +4,10 @@ from app.services.graph_builder import build_graph
 
 router=APIRouter()
 @router.post("/graph")
-def generate_grapg(project_path:str):
-    dependacy_map=parse_project(project_path)
-    graph=build_graph(dependacy_map)
+def generate_graph(project_path:str):
+    dependency_map=parse_project(project_path)
+    print("Dependency Map:", dependency_map)
+    
+    graph=build_graph(dependency_map)
+    print("Generated Graph:", graph)
     return graph

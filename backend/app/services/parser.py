@@ -1,7 +1,7 @@
 import os
 import ast
 import re
-from graph_builder import build_graph
+from app.services.graph_builder import build_graph
 EXTENSIONS={
     ".py": "python",
     ".js": "javascript",
@@ -102,7 +102,7 @@ def extract_imports(file_path):
         return parse_cpp(file_path)
     else:
         return parse_generic(file_path)
-def parse_object(project_path):
+def parse_project(project_path):
     files=get_all_files(project_path)
     dependency_map={}
     for file_path in files:
@@ -116,7 +116,7 @@ def parse_object(project_path):
 
 if __name__=="__main__":
     project_path="../../../sample_projects/project1"
-    dependancy_map=parse_object(project_path)
+    dependancy_map=parse_project(project_path)
     graph=build_graph(dependancy_map)
     print("\nNODES:")
     for n in graph["nodes"]:
