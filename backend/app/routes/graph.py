@@ -1,28 +1,10 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import List, Dict
+from app.services.parser import parse_project
+from app.services.graph_builder import build_graph
 
-router = APIRouter()
-
-class GraphRequest(BaseModel):
-    project_path: str
-
-class Node(BaseModel):
-    id: str
-    name: str
-    type: str  # "file", "function", "class"
-
-class Edge(BaseModel):
-    source: str
-    target: str
-    type: str  # "import", "call"
-
-class GraphResponse(BaseModel):
-    nodes: List[Node]
-    edges: List[Edge]
-
-@router.post("/", response_model=GraphResponse)
-async def generate_graph(request: GraphRequest):
-    # TODO: Implement graph generation
-    return GraphResponse(nodes=[], edges=[])
-
+router=APIRouter()
+@router.post("/graph")
+def generate_grapg(project_path:str):
+    dependacy_map=parse_project(project_path)
+    graph=build_graph(dependacy_map)
+    return graph
