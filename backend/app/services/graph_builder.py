@@ -1,28 +1,37 @@
-import networkx as nx
-from .parser import parse_project
+def build_graph(dependancy_map):
+    nodes=[]
+    edges=[]
 
-def build_graph(project_path: str) -> nx.DiGraph:
-    """Build dependency graph from parsed files"""
-    G = nx.DiGraph()
-    parsed_files = parse_project(project_path)
-    
-    for parsed in parsed_files:
-        file_node = parsed['file']
-        G.add_node(file_node, type='file')
+    file_set=set(dependancy_map.key())
+
+    for file in dependancy_map:
+        nodes.append({
+            "id":file,
+            "label": file})
         
-        for func in parsed['functions']:
-            G.add_node(f"{file_node}:{func}", type='function')
-            G.add_edge(file_node, f"{file_node}:{func}")
+    def resolve_import(import_name):
+        if import_name in file_set:
+            return import_name
         
-        for cls in parsed['classes']:
-            G.add_node(f"{file_node}:{cls}", type='class')
-            G.add_edge(file_node, f"{file_node}:{cls}")
-    
-    # TODO: Add cross-file edges based on imports
-    return G
+        possible=import_name+".py"
+        if possible in file_set:
+            return possible
+        
+        for file in file_set:
+            if file.startswith(import_name):
+                return file 
+        return None
+    for file,data in dependancy_map.items():
+        imports=data.get("imports",[])
 
-def graph_to_api_format(G: nx.DiGraph):
-    nodes = [{'id': n, 'name': n.split(':')[-1], 'type': G.nodes[n]['type']} for n in G.nodes]
-    edges = [{'source': u, 'target': v, 'type': 'depends'} for u, v in G.edges]
-    return {'nodes': nodes, 'edges': edges}
+        for imp in imports:
+            target=resolve_import(imp)
 
+            if target:
+                edges.append({
+                    "source":file,
+                    "target":target
+                })
+    return {
+        "nodes":nodes,
+        "edges":edges}
