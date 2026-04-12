@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ReactFlow from "reactflow";
+import ReactFlow,{Background,Controls,MiniMap} from "reactflow";
 import "reactflow/dist/style.css";
 
 function GraphView() {
@@ -41,8 +41,14 @@ function GraphView() {
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "100vh" }}>
-      <ReactFlow nodes={nodes} edges={edges} fitView />
+    <div style={{ width: "100vw", height: "100vh" }}>
+
+      <ReactFlow nodes={nodes} edges={edges} fitView >
+      <Background color="#ccc" gap={16}/>
+      <Controls />
+      <MiniMap nodeColor="#888" nodeStrokeWidth={3} />
+      </ReactFlow>
+
     </div>
   );
 }
