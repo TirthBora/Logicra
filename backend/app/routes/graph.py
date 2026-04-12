@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.services.parser import parse_project
 from app.services.graph_builder import build_graph
 
-router = APIRouter()
+router = APIRouter(prefix="/api")
 
 class ProjectRequest(BaseModel):
     project_path: str

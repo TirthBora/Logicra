@@ -116,12 +116,11 @@ def parse_project(project_path):
 
 if __name__=="__main__":
     project_path="../../../sample_projects/project1"
-    dependancy_map=parse_project(project_path)
-    graph=build_graph(dependancy_map)
+    dependency_map=parse_project(project_path)
+    graph=build_graph(dependency_map)
     print("\nNODES:")
     for n in graph["nodes"]:
         print(n)
     print("\nEDGES:")
     for e in graph["edges"]:
         print(e)
-   
