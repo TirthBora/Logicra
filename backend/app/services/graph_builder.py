@@ -1,50 +1,72 @@
 def build_graph(dependancy_map):
-    nodes=[]
-    edges=[]
+    nodes = []
+    edges = []
 
     file_set = set(dependancy_map.keys())
 
+    normalized_map = {
+        file: file.replace("\\", "/")
+        for file in file_set
+    }
+
     for file in dependancy_map:
         nodes.append({
-            "id":file,
-            "label": file})
-    name_map={}
+            "id": file,
+            "label": file.replace("\\", "/").split("/")[-1]
+        })
+
+    name_map = {}
     for file in file_set:
-        normalized=file.replace("\\","/")
-        base=normalized.split("/")[-1]
-        name=base.split(".")[0]
+        normalized = normalized_map[file]
+        base = normalized.split("/")[-1]
+        name = base.split(".")[0]
 
         if name not in name_map:
-            name_map[name]=[]
+            name_map[name] = []
         name_map[name].append(file)
-
-    def resolve_import(import_name):
+    def resolve_import(import_name, current_file):
         if not import_name:
             return None
+
         import_name = import_name.replace("\\", "/")
         import_name = import_name.split("/")[-1]
         import_name = import_name.split(".")[0]
 
-        if import_name in file_set:
-            return import_name
-        matches=name_map.get(import_name)
-        if matches:
-            return matches[0]
+        for file in file_set:
+            normalized = file.replace("\\", "/")
+
+            if normalized.endswith(f"/{import_name}.py") or normalized.endswith(f"{import_name}.py"):
+                return file
+
         return None
-    for file,data in dependancy_map.items():
-        imports=data.get("imports",[])
-        lang=data.get("language","unknown")
+    seen_edges = set()
+
+    for file, data in dependancy_map.items():
+        imports = data.get("imports", [])
+        lang = data.get("language", "unknown")
 
         for imp in imports:
-            target=resolve_import(imp)
+            target = resolve_import(imp, file)
 
-            if target:
-                
-                edges.append({
-                    "source":file,
-                    "target":target,
-                    "type" :lang
-                })
+            if not target:
+                continue
+            if target == file:
+                continue
+
+            edge_key = (file, target)
+
+            if edge_key in seen_edges:
+                continue
+
+            edges.append({
+                "source": file,
+                "target": target,
+                "type": lang
+            })
+
+            seen_edges.add(edge_key)
+
     return {
-        "nodes":nodes,
-        "edges":edges}
+        "nodes": nodes,
+        "edges": edges
+    }
