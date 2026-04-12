@@ -2,7 +2,8 @@ import os
 import ast
 import re
 from app.services.graph_builder import build_graph
-EXTENSIONS={
+
+EXTENSIONS = {
     ".py": "python",
     ".js": "javascript",
     ".ts": "javascript",
@@ -11,35 +12,67 @@ EXTENSIONS={
     ".cpp": "cpp",
     ".h": "cpp",
 }
-def get_all_files(project_path):
-    file_list=[]
 
-    for root,_,files in os.walk(project_path):
+def get_all_files(project_path):
+    file_list = []
+
+    SKIP_DIRS = {
+        "node_modules",
+        ".git",
+        "__pycache__",
+        "venv",
+        "dist",
+        "build"
+    }
+
+    SKIP_EXTENSIONS = {
+        ".pyc",
+        ".log",
+        ".lock"
+    }
+
+    for root, dirs, files in os.walk(project_path):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+
         for file in files:
-            full_path=os.path.join(root,file)
+            if file.startswith("."):
+                continue
+
+            _, ext = os.path.splitext(file)
+
+            if ext in SKIP_EXTENSIONS:
+                continue
+
+            full_path = os.path.join(root, file)
             file_list.append(full_path)
+
     return file_list
+
+
 def detect_lang(file_path):
-     _, ext=os.path.splitext(file_path)
-     return EXTENSIONS.get(ext,"unknown")
+    _, ext = os.path.splitext(file_path)
+    return EXTENSIONS.get(ext, "unknown")
+
 
 def parse_python(file_path):
-    imports=[]
+    imports = []
     try:
-        with open(file_path,"r",encoding="utf-8") as f:
-            tree=ast.parse(f.read())
+        with open(file_path, "r", encoding="utf-8") as f:
+            tree = ast.parse(f.read())
 
         for node in ast.walk(tree):
-            if isinstance(node,ast.Import):
+            if isinstance(node, ast.Import):
                 for alias in node.names:
                     imports.append(alias.name)
-            elif isinstance(node,ast.ImportFrom):
+            elif isinstance(node, ast.ImportFrom):
                 if node.module:
                     imports.append(node.module)
-    except Exception :
-        pass
+    except Exception as e:
+        print("ERROR:", file_path, e)
+
     return imports
-    
+
+
 def parse_javascript(file_path):
     imports = []
     pattern = r'import\s+(?:.*?\s+from\s+)?[\'"](.*?)[\'"]'
@@ -49,10 +82,7 @@ def parse_javascript(file_path):
             content = f.read()
 
         imports += re.findall(pattern, content)
-
-        # require()
-        requires = re.findall(r'require\([\'"](.*?)[\'"]\)', content)
-        imports += requires
+        imports += re.findall(r'require\([\'"](.*?)[\'"]\)', content)
 
     except Exception:
         pass
@@ -60,7 +90,6 @@ def parse_javascript(file_path):
     return imports
 
 
-# ☕ Java
 def parse_java(file_path):
     imports = []
 
@@ -74,6 +103,8 @@ def parse_java(file_path):
         pass
 
     return imports
+
+
 def parse_cpp(file_path):
     imports = []
 
@@ -87,40 +118,57 @@ def parse_cpp(file_path):
         pass
 
     return imports
+
+
 def parse_generic(file_path):
     return []
 
+
 def extract_imports(file_path):
-    lang=detect_lang(file_path)
-    if lang=="python":
+    lang = detect_lang(file_path)
+
+    if lang == "python":
         return parse_python(file_path)
-    elif lang=="javascript":
+    elif lang == "javascript":
         return parse_javascript(file_path)
-    elif lang=="java":
+    elif lang == "java":
         return parse_java(file_path)
-    elif lang in ["c","cpp"]:
+    elif lang in ["c", "cpp"]:
         return parse_cpp(file_path)
     else:
         return parse_generic(file_path)
+
+
 def parse_project(project_path):
-    files=get_all_files(project_path)
-    dependency_map={}
+    files = get_all_files(project_path)
+    dependency_map = {}
+
     for file_path in files:
-        file_name=os.path.relpath(file_path,project_path)
+        lang = detect_lang(file_path)
+
+        if lang == "unknown":
+            continue
+
+        file_name = os.path.relpath(file_path, project_path)
         imports = extract_imports(file_path)
-        dependency_map[file_name]={
-            "language": detect_lang(file_path),
-            "imports":imports
+
+        dependency_map[file_name] = {
+            "language": lang,
+            "imports": imports
         }
+
     return dependency_map
 
-if __name__=="__main__":
-    project_path="../../../sample_projects/project1"
-    dependency_map=parse_project(project_path)
-    graph=build_graph(dependency_map)
+
+if __name__ == "__main__":
+    project_path = "../../../sample_projects/project1"
+    dependency_map = parse_project(project_path)
+    graph = build_graph(dependency_map)
+
     print("\nNODES:")
     for n in graph["nodes"]:
         print(n)
+
     print("\nEDGES:")
     for e in graph["edges"]:
         print(e)
