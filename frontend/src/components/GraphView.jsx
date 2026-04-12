@@ -7,7 +7,7 @@ function GraphView() {
   const [nodes, setNodes] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/graph", {
+    fetch("http://127.0.0.1:8000/api/graph/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -17,22 +17,27 @@ function GraphView() {
       })
     })
       .then(res => res.json())
-      .then(data => {
-        const formattedNodes = data.nodes.map((n, i) => ({
-          id: n.id,
-          data: { label: n.label },
-          position: { x: i * 200, y: 100 }
-        }));
+     .then(data => {
+  if (!data.nodes || !data.edges) {
+    console.error("Invalid response:", data);
+    return;
+  }
 
-        const formattedEdges = data.edges.map((e, i) => ({
-          id: "e" + i,
-          source: e.source,
-          target: e.target
-        }));
+  const formattedNodes = data.nodes.map((n, i) => ({
+    id: n.id,
+    data: { label: n.label },
+    position: { x: i * 200, y: 100 }
+  }));
 
-        setNodes(formattedNodes);
-        setEdges(formattedEdges);
-      });
+  const formattedEdges = data.edges.map((e, i) => ({
+    id: "e" + i,
+    source: e.source,
+    target: e.target
+  }));
+
+  setNodes(formattedNodes);
+  setEdges(formattedEdges);
+});
   }, []);
 
   return (
