@@ -1,2 +1,1 @@
-def connect():
-    pass
+import app

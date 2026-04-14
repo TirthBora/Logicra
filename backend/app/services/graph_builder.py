@@ -1,3 +1,35 @@
+def detect_cycles(edges):
+    graph={}
+    for e in edges:
+        graph.setdefault(e["source"],[]).append(e["target"])
+
+    visited=set()
+    stack=set()
+    cycles=set()
+
+    def dfs(node,path):
+        if node in stack:
+            cycles.update(path)
+            return
+        if node in visited:
+            return
+        
+        visited.add(node)
+        stack.add(node)
+
+        for neighbor in graph.get(node,[]):
+            dfs(neighbor,path+[neighbor])
+
+        stack.add(node)
+
+        for neighbor in graph.get(node,[]):
+            dfs(neighbor,path+[neighbor])
+
+        stack.remove(node)
+    for node in graph:
+        dfs(node,[node])
+
+    return list(cycles)
 def build_graph(dependancy_map):
     nodes = []
     edges = []
@@ -65,8 +97,9 @@ def build_graph(dependancy_map):
             })
 
             seen_edges.add(edge_key)
-
+            cycles=detect_cycles(edges)
     return {
         "nodes": nodes,
-        "edges": edges
+        "edges": edges,
+        "cycles":cycles
     }
