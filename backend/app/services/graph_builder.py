@@ -1,35 +1,36 @@
 def detect_cycles(edges):
-    graph={}
+    graph = {}
     for e in edges:
-        graph.setdefault(e["source"],[]).append(e["target"])
+        graph.setdefault(e["source"], []).append(e["target"])
 
-    visited=set()
-    stack=set()
-    cycles=set()
+    visited = set()
+    stack = []
+    cycles = []
 
-    def dfs(node,path):
+    def dfs(node):
         if node in stack:
-            cycles.update(path)
+            cycle_start = stack.index(node)
+            cycle_nodes = stack[cycle_start:]
+            cycles.append(cycle_nodes+[node])
             return
+
         if node in visited:
             return
-        
+
         visited.add(node)
-        stack.add(node)
+        stack.append(node)
 
-        for neighbor in graph.get(node,[]):
-            dfs(neighbor,path+[neighbor])
+        for neighbor in graph.get(node, []):
+            dfs(neighbor)
 
-        stack.add(node)
+        stack.pop()
 
-        for neighbor in graph.get(node,[]):
-            dfs(neighbor,path+[neighbor])
-
-        stack.remove(node)
     for node in graph:
-        dfs(node,[node])
+        dfs(node) 
 
-    return list(cycles)
+    return cycles
+
+
 def build_graph(dependancy_map):
     nodes = []
     edges = []
@@ -56,6 +57,7 @@ def build_graph(dependancy_map):
         if name not in name_map:
             name_map[name] = []
         name_map[name].append(file)
+
     def resolve_import(import_name, current_file):
         if not import_name:
             return None
@@ -71,6 +73,7 @@ def build_graph(dependancy_map):
                 return file
 
         return None
+
     seen_edges = set()
 
     for file, data in dependancy_map.items():
@@ -97,9 +100,11 @@ def build_graph(dependancy_map):
             })
 
             seen_edges.add(edge_key)
-            cycles=detect_cycles(edges)
+
+    cycles = detect_cycles(edges)
+
     return {
         "nodes": nodes,
         "edges": edges,
-        "cycles":cycles
+        "cycles": cycles
     }
